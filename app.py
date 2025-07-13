@@ -11,7 +11,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# ✅ Allow GitHub Pages domain for CORS
+# ✅ Correct CORS setting for your GitHub Pages frontend
 CORS(app, origins=["https://mikaelisbest.github.io"])
 
 # Groq API Setup
@@ -30,7 +30,6 @@ def chat():
         if not user_message:
             raise ValueError("Empty message received.")
 
-        # Sentiment analysis
         sia = SentimentIntensityAnalyzer()
         sentiment = sia.polarity_scores(user_message)
 
@@ -69,7 +68,7 @@ def chat():
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-# ✅ THIS IS IMPORTANT
+# ✅ Use the PORT env variable on Railway
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 3000))
     app.run(host="0.0.0.0", port=port)
