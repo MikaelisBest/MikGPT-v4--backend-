@@ -4,21 +4,20 @@ import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import requests
 import traceback
-
-app = Flask(__name__)
-CORS(app)
-
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+app = Flask(__name__)
+# 👇 Allow ONLY your frontend domain (safer than "*")
+CORS(app, origins=["https://mikaelisbest.github.io"])
 
 # Groq API Config
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MODEL = "llama3-8b-8192"
 
-# Download sentiment lexicon once
 nltk.download('vader_lexicon')
 
 @app.route('/api/chat', methods=['POST'])
@@ -26,7 +25,6 @@ def chat():
     try:
         data = request.get_json()
         user_message = data.get('message', '')
-        print("User said:", user_message)
 
         if not user_message:
             raise ValueError("Empty message received.")
@@ -35,7 +33,6 @@ def chat():
         sia = SentimentIntensityAnalyzer()
         sentiment = sia.polarity_scores(user_message)
 
-        # Adjust prompt based on sentiment
         if sentiment['compound'] < -0.5:
             system_prompt = "You are MikGPT-V4, providing supportive responses."
         elif sentiment['compound'] > 0.5:
@@ -43,7 +40,6 @@ def chat():
         else:
             system_prompt = "You are MikGPT-V4, a friendly AI assistant."
 
-        # Groq API headers and payload
         headers = {
             "Authorization": f"Bearer {GROQ_API_KEY}",
             "Content-Type": "application/json"
@@ -57,7 +53,6 @@ def chat():
             ]
         }
 
-        # Send request to Groq
         response = requests.post(GROQ_URL, headers=headers, json=payload)
 
         if response.status_code != 200:
@@ -66,19 +61,12 @@ def chat():
 
         result = response.json()
         ai_reply = result['choices'][0]['message']['content']
-        print("AI:", ai_reply)
 
-        return jsonify({
-            'status': 'success',
-            'response': ai_reply
-        })
+        return jsonify({'status': 'success', 'response': ai_reply})
 
     except Exception as e:
         traceback.print_exc()
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=3000)
