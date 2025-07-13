@@ -10,11 +10,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-
-# ✅ Correct CORS setting for your GitHub Pages frontend
 CORS(app, origins=["https://mikaelisbest.github.io"])
 
-# Groq API Setup
+# Groq API Config
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MODEL = "llama3-8b-8192"
@@ -68,7 +66,5 @@ def chat():
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-# ✅ Use the PORT env variable on Railway
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 3000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=3000)
