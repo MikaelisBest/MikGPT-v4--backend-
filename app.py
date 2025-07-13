@@ -1,0 +1,84 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import nltk
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import requests
+import traceback
+
+app = Flask(__name__)
+CORS(app)
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Groq API Config
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+MODEL = "llama3-8b-8192"
+
+# Download sentiment lexicon once
+nltk.download('vader_lexicon')
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '')
+        print("User said:", user_message)
+
+        if not user_message:
+            raise ValueError("Empty message received.")
+
+        # Sentiment analysis
+        sia = SentimentIntensityAnalyzer()
+        sentiment = sia.polarity_scores(user_message)
+
+        # Adjust prompt based on sentiment
+        if sentiment['compound'] < -0.5:
+            system_prompt = "You are MikGPT-V4, providing supportive responses."
+        elif sentiment['compound'] > 0.5:
+            system_prompt = "You are MikGPT-V4, engaging enthusiastically."
+        else:
+            system_prompt = "You are MikGPT-V4, a friendly AI assistant."
+
+        # Groq API headers and payload
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": MODEL,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ]
+        }
+
+        # Send request to Groq
+        response = requests.post(GROQ_URL, headers=headers, json=payload)
+
+        if response.status_code != 200:
+            print("Groq Error:", response.status_code, response.text)
+            response.raise_for_status()
+
+        result = response.json()
+        ai_reply = result['choices'][0]['message']['content']
+        print("AI:", ai_reply)
+
+        return jsonify({
+            'status': 'success',
+            'response': ai_reply
+        })
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
