@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=["https://mikaelisbest.github.io"])
+CORS(app, origins=["https://mikaelisbest.github.io/MikGPT-V4--frontend-",])
 
 # Groq API Config
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
