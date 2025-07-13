@@ -7,10 +7,13 @@ import traceback
 import os
 from dotenv import load_dotenv
 
+# Load .env variables
 load_dotenv()
 
+# Init app
 app = Flask(__name__)
-# 👇 Allow ONLY your frontend domain (safer than "*")
+
+# Allow ONLY your GitHub Pages frontend
 CORS(app, origins=["https://mikaelisbest.github.io"])
 
 # Groq API Config
@@ -18,28 +21,30 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MODEL = "llama3-8b-8192"
 
-nltk.download('vader_lexicon')
+# Make sure nltk is ready
+nltk.download("vader_lexicon")
 
-@app.route('/api/chat', methods=['POST'])
+@app.route("/api/chat", methods=["POST"])
 def chat():
     try:
         data = request.get_json()
-        user_message = data.get('message', '')
+        user_message = data.get("message", "")
 
         if not user_message:
             raise ValueError("Empty message received.")
 
-        # Sentiment analysis
+        # Sentiment logic
         sia = SentimentIntensityAnalyzer()
         sentiment = sia.polarity_scores(user_message)
 
-        if sentiment['compound'] < -0.5:
+        if sentiment["compound"] < -0.5:
             system_prompt = "You are MikGPT-V4, providing supportive responses."
-        elif sentiment['compound'] > 0.5:
+        elif sentiment["compound"] > 0.5:
             system_prompt = "You are MikGPT-V4, engaging enthusiastically."
         else:
             system_prompt = "You are MikGPT-V4, a friendly AI assistant."
 
+        # Groq API call
         headers = {
             "Authorization": f"Bearer {GROQ_API_KEY}",
             "Content-Type": "application/json"
@@ -60,13 +65,14 @@ def chat():
             response.raise_for_status()
 
         result = response.json()
-        ai_reply = result['choices'][0]['message']['content']
+        ai_reply = result["choices"][0]["message"]["content"]
 
-        return jsonify({'status': 'success', 'response': ai_reply})
+        return jsonify({"status": "success", "response": ai_reply})
 
     except Exception as e:
         traceback.print_exc()
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
+# Run the app
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000)
