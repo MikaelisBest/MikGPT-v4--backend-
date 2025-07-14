@@ -13,8 +13,10 @@ print("GROQ_API_KEY:", os.getenv("GROQ_API_KEY"))
 
 app = Flask(__name__)
 
-# ✅ THIS IS THE LINE THAT MATTERS
-CORS(app, origins=["https://mikaelisbest.github.io/MikGPT-v4--frontend-/"])
+from flask_cors import CORS
+
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 
 # Groq API Config
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
