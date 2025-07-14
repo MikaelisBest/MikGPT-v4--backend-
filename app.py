@@ -1,33 +1,33 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # ✅ ADD THIS
-
+from flask_cors import CORS
+import os
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import requests
 import traceback
-import os
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
-print("GROQ_API_KEY:", os.getenv("GROQ_API_KEY"))  
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+print("GROQ_API_KEY loaded:", bool(GROQ_API_KEY))  # Debug print
 
+# Init app
 app = Flask(__name__)
 
-from flask_cors import CORS
-
+# ✅ Proper CORS setup — allow frontend domain
 CORS(app, resources={r"/*": {"origins": [
     "https://mikgpt-v4-frontend-production.up.railway.app"
 ]}})
 
-
-# Groq API Config
+# Groq config
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MODEL = "llama3-8b-8192"
 
+# Download VADER once
 nltk.download('vader_lexicon')
 
-@app.route('/api/chat', methods=['POST'])
+@app.route('/api', methods=['POST'])  # ✅ Make sure your frontend calls /api not /api/chat
 def chat():
     try:
         data = request.get_json()
@@ -36,6 +36,7 @@ def chat():
         if not user_message:
             raise ValueError("Empty message received.")
 
+        # Sentiment-based system prompt
         sia = SentimentIntensityAnalyzer()
         sentiment = sia.polarity_scores(user_message)
 
@@ -68,7 +69,7 @@ def chat():
         result = response.json()
         ai_reply = result['choices'][0]['message']['content']
 
-        return jsonify({'status': 'success', 'response': ai_reply})
+        return jsonify({'status': 'success', 'reply': ai_reply})
 
     except Exception as e:
         traceback.print_exc()
@@ -77,6 +78,3 @@ def chat():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-# Dummy comment to force redeploy
-
-
