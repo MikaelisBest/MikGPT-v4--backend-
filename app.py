@@ -11,7 +11,7 @@ load_dotenv()
 print("GROQ_API_KEY:", os.getenv("GROQ_API_KEY"))  
 
 app = Flask(__name__)
-CORS(app, origins=["https://mikaelisbest.github.io",])
+CORS(app, origins=["https://mikaelisbest.github.io"])
 
 # Groq API Config
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
