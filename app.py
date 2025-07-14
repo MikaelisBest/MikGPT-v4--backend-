@@ -8,9 +8,10 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+print("GROQ_API_KEY:", os.getenv("GROQ_API_KEY"))  
 
 app = Flask(__name__)
-CORS(app, origins=["https://mikaelisbest.github.io/MikGPT-V4--frontend-",])
+CORS(app, origins=["https://mikaelisbest.github.io",])
 
 # Groq API Config
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -67,4 +68,5 @@ def chat():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=3000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
