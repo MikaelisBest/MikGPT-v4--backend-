@@ -15,10 +15,11 @@ app = Flask(__name__)
 
 from flask_cors import CORS
 
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": [
+    "https://mikaelisbest.github.io",
+    "https://mikaelisbest.github.io/MikGPT-v4--frontend-/"
+]}})
 print("🔥 CORS is now wide open!")  # for debugging
-
-
 
 # Groq API Config
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
