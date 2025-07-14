@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS  # ✅ ADD THIS
+
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import requests
@@ -11,6 +12,8 @@ load_dotenv()
 print("GROQ_API_KEY:", os.getenv("GROQ_API_KEY"))  
 
 app = Flask(__name__)
+
+# ✅ THIS IS THE LINE THAT MATTERS
 CORS(app, origins=["https://mikaelisbest.github.io/MikGPT-v4--frontend-/"])
 
 # Groq API Config
